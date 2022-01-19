@@ -1,0 +1,27 @@
+---
+
+- name: Swarm cluster installation.
+  become: True
+  command: "docker swarm init --advertise-addr {{hostvars[groups.leader[0]]['ansible_default_ipv4']['address']}}:{{advertise_port}}"
+  register: cluster_initialised
+  when:  inventory_hostname == groups.leader[0]
+
+- name: Get manager nodes join-token.
+  become: True
+  command: docker swarm join-token -q manager
+  when: cluster_initialised and inventory_hostname == groups.leader[0]
+  register: swarm_manager_join_token
+
+- name: Get worker nodes join-token
+  become: True
+  command: docker swarm  join-token -q worker
+  when: cluster_initialised and inventory_hostname == groups.leader[0]
+  register: swarm_worker_join_token
+
+- name: Join swarm cluster as a manager
+  include_tasks: manager-join.yaml
+  
+- name: "Join swarm cluster as a Worker"
+  include_tasks: worker-join.yaml
+
+...

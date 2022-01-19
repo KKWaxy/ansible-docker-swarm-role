@@ -1,0 +1,7 @@
+---
+- name: Worker nodes joining the cluster
+  become: True
+  command: 
+    cmd: "docker swarm join --token {{hostvars[groups.leader[0]]['swarm_worker_join_token']['stdout']}} {{hostvars[groups.leader[0]]['ansible_default_ipv4']['address']}}:{{advertise_port}}"
+  when: inventory_hostname in groups.workers
+...
